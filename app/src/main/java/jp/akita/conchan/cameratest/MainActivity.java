@@ -7,6 +7,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import android.view.View;
+import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -21,6 +23,8 @@ public class MainActivity extends AppCompatActivity {
 
         // SurfaceView
         mySurfaceView = (SurfaceView)findViewById(R.id.camera_surfaceView);
+        //リスナ追加 //STEP2で追加
+        mySurfaceView.setOnClickListener(onSurfaceClickListener);
 
         // SurfaceHolder(SVの制御に使うInterface）
         SurfaceHolder holder = mySurfaceView.getHolder();
@@ -60,6 +64,45 @@ public class MainActivity extends AppCompatActivity {
             //片付け
             myCamera.release();
             myCamera = null;
+
+        }
+    };
+
+
+    //以下、STEP2で追加
+
+    //Surfaceをクリックした時
+    private View.OnClickListener onSurfaceClickListener = new View.OnClickListener(){
+        @Override
+        public void onClick(View view){
+            if(myCamera != null){
+                //AutoFocusを実行
+                myCamera.autoFocus(autoFocusCallback);
+            }
+        }
+
+    };
+
+    //AutoFocusした時
+    private Camera.AutoFocusCallback autoFocusCallback = new Camera.AutoFocusCallback(){
+        @Override
+        public void onAutoFocus(boolean b, Camera camera) {
+
+            //ただ写真を撮るだけならここにtakePicture()を入れても良い
+            //しかし、Pixelを弄りたいのでもうワンクッション（画像処理やバーコード処理をしたいので）
+            //Previewを1枚切り取る（そしてイベント発生）
+            camera.setOneShotPreviewCallback(previewCallback);
+        }
+    };
+
+    //切り取った時（ここで撮影、各種画像処理を行う）
+    private Camera.PreviewCallback previewCallback = new Camera.PreviewCallback(){
+
+        //OnShotPreview時のbyte[]が渡ってくる
+        @Override
+        public void onPreviewFrame(byte[] bytes, Camera camera) {
+
+            Toast.makeText(getApplicationContext(),"フォーカスが合い画像を切り取りました。", Toast.LENGTH_SHORT).show();
 
         }
     };
